@@ -2,7 +2,7 @@ import yaml
 import os
 import time
 from abc import abstractmethod, ABC
-from typing import Any, Dict, Optional, Tuple, List, Callable
+from typing import Any, Dict, Optional, Tuple, List, Callable, Union
 
 from cereal import car
 from common.basedir import BASEDIR
@@ -86,6 +86,17 @@ class CarInterfaceBase(ABC):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     return ACCEL_MIN, ACCEL_MAX
+
+  @staticmethod
+  def is_ecu_fw(car_fw: List[car.CarParams.CarFw], ecu: str, fw_search: Union[bytes, List[bytes]], splice: Optional[int] = None):
+    if isinstance(fw_search, bytes):
+      fw_search = [fw_search]
+
+    for fw in car_fw:
+      fw_version = fw.fwVersion if splice is None else fw.fwVersion[:splice]
+      if fw.ecu == ecu and fw_version in fw_search:
+        return True
+    return False
 
   @classmethod
   def get_params(cls, candidate: str, fingerprint: Optional[Dict[int, Dict[int, int]]] = None, car_fw: Optional[List[car.CarParams.CarFw]] = None, experimental_long: bool = False):
